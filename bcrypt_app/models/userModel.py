@@ -79,16 +79,20 @@ class User:
         lastname = user['lastname']
         birthday = user['birthday']
         gender = user['gender']
-
-        today = datetime.now()
-        birthdayConverted = datetime.strptime(birthday, "%Y-%m-%d")
         
         if gender == 'Self describe':
             gender = user['other']
 
-        if birthdayConverted > today:
-            flash('Birthday must be a date in the past', 'register_error')
+        if len(birthday) == 0:
+            flash('Birthday must be selected.', 'register_error')
             is_valid = False
+        else:
+            today = datetime.now()
+            birthdayConverted = datetime.strptime(birthday, "%Y-%m-%d")
+    
+            if birthdayConverted > today:
+                flash('Birthday must be a date in the past', 'register_error')
+                is_valid = False
 
         if len(firstname) < 2:
             flash('First name must be at least 2 characters long', 'register_error')
