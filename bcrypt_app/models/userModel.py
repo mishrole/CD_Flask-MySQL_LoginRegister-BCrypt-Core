@@ -90,12 +90,12 @@ class User:
             flash('Birthday must be a date in the past', 'register_error')
             is_valid = False
 
-        if len(firstname) < 3:
-            flash('First name must be at least 3 characters long', 'register_error')
+        if len(firstname) < 2:
+            flash('First name must be at least 2 characters long', 'register_error')
             is_valid = False
 
-        if len(lastname) < 3:
-            flash('Last name must be at least 3 characters long', 'register_error')
+        if len(lastname) < 2:
+            flash('Last name must be at least 2 characters long', 'register_error')
             is_valid = False
 
         if not TEXT_REGEX.match(firstname):
