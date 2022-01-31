@@ -1,7 +1,9 @@
 from bcrypt_app.config.mysqlconnection import connectToMySQL
 from flask import flash
 import re
+from datetime import datetime
 
+TEXT_REGEX = re.compile(r'^[A-Za-z\u00C0-\u017F\.\-\s]+$')
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
 PASSWORD_REGEX = re.compile(r'^(?=.*\d)(?=.*[A-Z])[a-zA-Z\d]{8,}$')
 
@@ -10,6 +12,8 @@ class User:
         self.id = data['id']
         self.firstname = data['firstname']
         self.lastname = data['lastname']
+        self.birthday = data['birthday']
+        self.gender = data['gender']
         self.email = data['email']
         self.password = data['password']
         self.created_at = data['created_at']
@@ -29,7 +33,7 @@ class User:
 
     @classmethod
     def save(cls, data):
-        query = "INSERT INTO users (firstname, lastname, email, password, created_at, updated_at) VALUES (%(firstname)s, %(lastname)s, %(email)s, %(password)s, NOW(), NOW());"
+        query = "INSERT INTO users (firstname, lastname, birthday, gender, email, password, created_at, updated_at) VALUES (%(firstname)s, %(lastname)s, %(birthday)s, %(gender)s, %(email)s, %(password)s, NOW(), NOW());"
         return connectToMySQL('bcrypt_user_schema').query_db(query, data)
 
     @classmethod
@@ -71,13 +75,43 @@ class User:
 
         email = user['email']
         password = user['password']
+        firstname = user['firstname']
+        lastname = user['lastname']
+        birthday = user['birthday']
+        gender = user['gender']
 
-        if len(user['firstname']) < 3:
+        today = datetime.now()
+        birthdayConverted = datetime.strptime(birthday, "%Y-%m-%d")
+        
+        if gender == 'Self describe':
+            gender = user['other']
+
+        if birthdayConverted > today:
+            flash('Birthday must be a date in the past', 'register_error')
+            is_valid = False
+
+        if len(firstname) < 3:
             flash('First name must be at least 3 characters long', 'register_error')
             is_valid = False
 
-        if len(user['lastname']) < 3:
-            flash('First name must be at least 3 characters long', 'register_error')
+        if len(lastname) < 3:
+            flash('Last name must be at least 3 characters long', 'register_error')
+            is_valid = False
+
+        if not TEXT_REGEX.match(firstname):
+            flash('First name must only contain letters and . -', 'register_error')
+            is_valid = False
+
+        if not TEXT_REGEX.match(lastname):
+            flash('Last name must must only contain letters and . -', 'register_error')
+            is_valid = False
+
+        if len(gender) == 0:
+            flash('Select an option or self describe', 'register_error')
+            is_valid = False
+
+        if not TEXT_REGEX.match(gender):
+            flash('Gender must only contain letters and . -', 'register_error')
             is_valid = False
 
         if not EMAIL_REGEX.match(email):
@@ -85,7 +119,7 @@ class User:
             is_valid = False
 
         if not PASSWORD_REGEX.match(password):
-            flash('Password must be at least 8 characters long and contain 1 uppercase letter and 1 number', 'register_error')
+            flash('Password must be at least 8 characters long and contain 1 uppercase letter and 1 number without special characters', 'register_error')
             is_valid = False
 
         if user['password'] != user['password_confirmation']:

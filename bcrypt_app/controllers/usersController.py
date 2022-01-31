@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, session, flash
 from bcrypt_app import app
 from bcrypt_app.models import userModel
 from flask_bcrypt import Bcrypt
+from datetime import datetime
 
 bcrypt = Bcrypt(app)
 
@@ -26,14 +27,23 @@ def register():
         return redirect('/')
     
     encryptedPassword = bcrypt.generate_password_hash(request.form['password'])
-    print(encryptedPassword)
+
+    gender = request.form['gender']
+    
+    if gender == 'Self describe':
+        gender = request.form['other']
 
     data = {
         'firstname': request.form['firstname'],
         'lastname': request.form['lastname'],
         'email': request.form['email'],
-        'password': encryptedPassword
+        'password': encryptedPassword,
+        'gender': gender,
+        'birthday': request.form['birthday']
     }
+
+    print(request.form['birthday'])
+    today = datetime.now()
 
     result = userModel.User.save(data)
 
